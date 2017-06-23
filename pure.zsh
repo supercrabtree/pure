@@ -84,7 +84,7 @@ prompt_pure_preexec() {
 	typeset -g prompt_pure_cmd_timestamp=$EPOCHSECONDS
 
 	# shows the current dir and executed command in the title while a process is active
-	prompt_pure_set_title 'ignore-escape' "$PWD:t: $2"
+	prompt_pure_set_title 'ignore-escape' "$PWD:t"
 }
 
 # string length ignoring ansi escapes
@@ -102,14 +102,15 @@ prompt_pure_preprompt_render() {
 
 	# Set color for git branch/dirty status, change color if dirty checking has
 	# been delayed.
-	local git_color=242
+	local git_color=10
 	[[ -n ${prompt_pure_git_last_dirty_check_timestamp+x} ]] && git_color=red
 
 	# Initialize the preprompt array.
 	local -a preprompt_parts
 
 	# Set the path.
-	preprompt_parts+=('%F{blue}%~%f')
+	# preprompt_parts+=('%F{blue}%~%f')
+    preprompt_parts+="$(jobcount)%F{blue}%~%f"
 
 	# Add git branch and dirty status info.
 	typeset -gA prompt_pure_vcs_info
@@ -124,7 +125,7 @@ prompt_pure_preprompt_render() {
 	# Username and machine, if applicable.
 	[[ -n $prompt_pure_username ]] && preprompt_parts+=('$prompt_pure_username')
 	# Execution time.
-	[[ -n $prompt_pure_cmd_exec_time ]] && preprompt_parts+=('%F{yellow}${prompt_pure_cmd_exec_time}%f')
+	[[ -n $prompt_pure_cmd_exec_time ]] && preprompt_parts+=('%F{10}${prompt_pure_cmd_exec_time}%f')
 
 	local cleaned_ps1=$PROMPT
 	local -H MATCH MBEGIN MEND
@@ -166,7 +167,7 @@ prompt_pure_precmd() {
 	unset prompt_pure_cmd_timestamp
 
 	# shows the full path in the title
-	prompt_pure_set_title 'expand-prompt' '%~'
+	prompt_pure_set_title 'expand-prompt' "$PWD:t"
 
 	# preform async git dirty check and fetch
 	prompt_pure_async_tasks
@@ -384,7 +385,7 @@ prompt_pure_async_callback() {
 			if (( code == 0 )); then
 				unset prompt_pure_git_dirty
 			else
-				typeset -g prompt_pure_git_dirty="*"
+				typeset -g prompt_pure_git_dirty="%F{red} ✕%f"
 			fi
 
 			[[ $prev_dirty != $prompt_pure_git_dirty ]] && prompt_pure_preprompt_render
@@ -456,7 +457,7 @@ prompt_pure_setup() {
 	PROMPT='%(12V.%F{242}%12v%f .)'
 
 	# prompt turns red if the previous command didn't exit with 0
-	PROMPT+='%(?.%F{magenta}.%F{red})${PURE_PROMPT_SYMBOL:-❯}%f '
+	PROMPT+='%(?.%F{10}.%F{red})${PURE_PROMPT_SYMBOL:-❯}%f '
 }
 
 prompt_pure_setup "$@"
